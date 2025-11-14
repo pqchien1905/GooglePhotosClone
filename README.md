@@ -80,7 +80,7 @@
 
 ```bash
 # Clone
-git clone https://github.com/yourusername/googlephotos.git
+git clone git clone https://github.com/yourusername/googlephotos.git
 cd googlephotos
 
 # PHP deps
