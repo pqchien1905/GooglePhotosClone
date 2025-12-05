@@ -152,13 +152,13 @@ class FriendController extends Controller
 
         if (!$target) {
             return response()->json([
-                'message' => 'Không tìm thấy người dùng với email này.',
+                'message' => 'KhÃ´ng tÃ¬m tháº¥y ngÆ°á»i dÃ¹ng vá»›i email nÃ y.',
             ], 404);
         }
         
         if ($target->id === $user->id) {
             return response()->json([
-                'message' => 'Bạn không thể kết bạn với chính mình.',
+                'message' => 'Báº¡n khÃ´ng thá»ƒ káº¿t báº¡n vá»›i chÃ­nh mÃ¬nh.',
             ], 422);
         }
 
@@ -170,11 +170,11 @@ class FriendController extends Controller
         if ($existing) {
             if ($existing->status === 'blocked') {
                 return response()->json([
-                    'message' => 'Không thể kết bạn với người dùng này.',
+                    'message' => 'KhÃ´ng thá»ƒ káº¿t báº¡n vá»›i ngÆ°á»i dÃ¹ng nÃ y.',
                 ], 403);
             }
             return response()->json([
-                'message' => 'Đã tồn tại mối quan hệ với người dùng này.',
+                'message' => 'ÄÃ£ tá»“n táº¡i má»‘i quan há»‡ vá»›i ngÆ°á»i dÃ¹ng nÃ y.',
             ], 422);
         }
 
@@ -196,7 +196,7 @@ class FriendController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Đã gửi lời mời kết bạn.',
+            'message' => 'ÄÃ£ gá»­i lá»i má»i káº¿t báº¡n.',
             'data' => $friend,
         ], 201);
     }
@@ -210,13 +210,13 @@ class FriendController extends Controller
         
         if ($friend->addressee_id !== $user->id) {
             return response()->json([
-                'message' => 'Không có quyền chấp nhận lời mời này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n cháº¥p nháº­n lá»i má»i nÃ y.',
             ], 403);
         }
         
         if ($friend->status !== 'pending') {
             return response()->json([
-                'message' => 'Lời mời này không còn ở trạng thái chờ.',
+                'message' => 'Lá»i má»i nÃ y khÃ´ng cÃ²n á»Ÿ tráº¡ng thÃ¡i chá».',
             ], 422);
         }
         
@@ -234,7 +234,7 @@ class FriendController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Đã chấp nhận lời mời.',
+            'message' => 'ÄÃ£ cháº¥p nháº­n lá»i má»i.',
             'data' => $friend,
         ]);
     }
@@ -248,14 +248,14 @@ class FriendController extends Controller
         
         if ($friend->requester_id !== $user->id && $friend->addressee_id !== $user->id) {
             return response()->json([
-                'message' => 'Không có quyền xóa mối quan hệ này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n xÃ³a má»‘i quan há»‡ nÃ y.',
             ], 403);
         }
         
         $friend->delete();
         
         return response()->json([
-            'message' => 'Đã xóa mối quan hệ bạn bè / hủy lời mời.',
+            'message' => 'ÄÃ£ xÃ³a má»‘i quan há»‡ báº¡n bÃ¨ / há»§y lá»i má»i.',
         ]);
     }
 
@@ -268,7 +268,7 @@ class FriendController extends Controller
         
         if ($friend->requester_id !== $user->id && $friend->addressee_id !== $user->id) {
             return response()->json([
-                'message' => 'Không có quyền chặn người dùng này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n cháº·n ngÆ°á»i dÃ¹ng nÃ y.',
             ], 403);
         }
         
@@ -276,7 +276,7 @@ class FriendController extends Controller
         $friend->save();
         
         return response()->json([
-            'message' => 'Đã chặn người dùng.',
+            'message' => 'ÄÃ£ cháº·n ngÆ°á»i dÃ¹ng.',
         ]);
     }
 
@@ -289,14 +289,14 @@ class FriendController extends Controller
         
         if ($friend->requester_id !== $user->id && $friend->addressee_id !== $user->id) {
             return response()->json([
-                'message' => 'Không có quyền bỏ chặn người dùng này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n bá» cháº·n ngÆ°á»i dÃ¹ng nÃ y.',
             ], 403);
         }
         
         $friend->delete();
         
         return response()->json([
-            'message' => 'Đã bỏ chặn người dùng.',
+            'message' => 'ÄÃ£ bá» cháº·n ngÆ°á»i dÃ¹ng.',
         ]);
     }
 
@@ -330,7 +330,7 @@ class FriendController extends Controller
         foreach ($data['friend_ids'] as $friendId) {
             if (!$friendUserIds->contains($friendId)) {
                 return response()->json([
-                    'message' => 'Một hoặc nhiều người nhận không phải là bạn bè của bạn.',
+                    'message' => 'Má»™t hoáº·c nhiá»u ngÆ°á»i nháº­n khÃ´ng pháº£i lÃ  báº¡n bÃ¨ cá»§a báº¡n.',
                 ], 422);
             }
         }
@@ -387,7 +387,7 @@ class FriendController extends Controller
         }
 
         return response()->json([
-            'message' => "Đã chia sẻ thành công.",
+            'message' => "ÄÃ£ chia sáº» thÃ nh cÃ´ng.",
             'shares_count' => $sharesCount,
         ]);
     }

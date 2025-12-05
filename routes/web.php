@@ -48,8 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/albums/{album}/photos', [AlbumController::class, 'addPhotos'])->name('albums.addPhotos');
     Route::delete('/albums/{album}/photos/{photo}', [AlbumController::class, 'removePhoto'])->name('albums.removePhoto');
     
-    // API for albums list (for modal)
-    Route::get('/api/albums', function (Request $request) {
+    // API for albums list (for modal) - INERTIA ONLY
+    Route::get('/inertia-api/albums', function (Request $request) {
         $albums = Album::with(['coverPhoto'])
             ->where('user_id', $request->user()->id)
             ->withCount('photos')
@@ -58,8 +58,8 @@ Route::middleware('auth')->group(function () {
         return response()->json(['data' => $albums]);
     });
 
-    // API for user's photos (for album create picker)
-    Route::get('/api/photos', function (Request $request) {
+    // API for user's photos (for album create picker) - INERTIA ONLY
+    Route::get('/inertia-api/photos', function (Request $request) {
         $photos = Photo::where('user_id', $request->user()->id)
             ->whereNull('deleted_at')
             ->orderBy('created_at', 'desc')

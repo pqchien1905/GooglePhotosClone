@@ -61,7 +61,7 @@ class AlbumController extends Controller
     {
         if ($album->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Không có quyền truy cập album này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n truy cáº­p album nÃ y.',
             ], 403);
         }
 
@@ -110,7 +110,7 @@ class AlbumController extends Controller
         $album->loadCount('photos');
 
         return response()->json([
-            'message' => 'Đã tạo album và thêm ảnh.',
+            'message' => 'ÄÃ£ táº¡o album vÃ  thÃªm áº£nh.',
             'data' => $album,
         ], 201);
     }
@@ -122,7 +122,7 @@ class AlbumController extends Controller
     {
         if ($album->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Không có quyền chỉnh sửa album này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n chá»‰nh sá»­a album nÃ y.',
             ], 403);
         }
 
@@ -143,7 +143,7 @@ class AlbumController extends Controller
         $album->loadCount('photos');
 
         return response()->json([
-            'message' => 'Đã cập nhật album.',
+            'message' => 'ÄÃ£ cáº­p nháº­t album.',
             'data' => $album,
         ]);
     }
@@ -155,7 +155,7 @@ class AlbumController extends Controller
     {
         if ($album->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Không có quyền xóa album này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n xÃ³a album nÃ y.',
             ], 403);
         }
 
@@ -163,7 +163,7 @@ class AlbumController extends Controller
         $album->delete();
 
         return response()->json([
-            'message' => 'Đã xóa album.',
+            'message' => 'ÄÃ£ xÃ³a album.',
         ]);
     }
 
@@ -174,7 +174,7 @@ class AlbumController extends Controller
     {
         if ($album->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Không có quyền thêm ảnh vào album này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n thÃªm áº£nh vÃ o album nÃ y.',
             ], 403);
         }
 
@@ -199,7 +199,7 @@ class AlbumController extends Controller
         $album->loadCount('photos');
 
         return response()->json([
-            'message' => 'Đã thêm ảnh vào album.',
+            'message' => 'ÄÃ£ thÃªm áº£nh vÃ o album.',
             'data' => $album,
         ]);
     }
@@ -211,7 +211,7 @@ class AlbumController extends Controller
     {
         if ($album->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Không có quyền xóa ảnh khỏi album này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n xÃ³a áº£nh khá»i album nÃ y.',
             ], 403);
         }
 
@@ -226,7 +226,7 @@ class AlbumController extends Controller
         $album->loadCount('photos');
 
         return response()->json([
-            'message' => 'Đã xóa ảnh khỏi album.',
+            'message' => 'ÄÃ£ xÃ³a áº£nh khá»i album.',
             'data' => $album,
         ]);
     }
@@ -256,7 +256,7 @@ class AlbumController extends Controller
 
         if ($albums->count() !== count($albumIds)) {
             return response()->json([
-                'message' => 'Một hoặc nhiều album không tồn tại hoặc không thuộc quyền sở hữu của bạn.',
+                'message' => 'Má»™t hoáº·c nhiá»u album khÃ´ng tá»“n táº¡i hoáº·c khÃ´ng thuá»™c quyá»n sá»Ÿ há»¯u cá»§a báº¡n.',
             ], 403);
         }
 
@@ -294,7 +294,7 @@ class AlbumController extends Controller
         }
 
         return response()->json([
-            'message' => "Đã gửi email chia sẻ đến {$sent} địa chỉ email.",
+            'message' => "ÄÃ£ gá»­i email chia sáº» Ä‘áº¿n {$sent} Ä‘á»‹a chá»‰ email.",
             'sent' => $sent,
             'failed' => $failed,
         ]);

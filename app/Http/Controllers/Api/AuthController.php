@@ -34,7 +34,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Đăng ký thành công.',
+            'message' => 'ÄÄƒng kÃ½ thÃ nh cÃ´ng.',
             'user' => $user,
             'token' => $token,
         ], 201);
@@ -52,7 +52,7 @@ class AuthController extends Controller
 
         if (!Auth::attempt($request->only('email', 'password'))) {
             throw ValidationException::withMessages([
-                'email' => ['Email hoặc mật khẩu không đúng.'],
+                'email' => ['Email hoáº·c máº­t kháº©u khÃ´ng Ä‘Ãºng.'],
             ]);
         }
 
@@ -65,7 +65,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Đăng nhập thành công.',
+            'message' => 'ÄÄƒng nháº­p thÃ nh cÃ´ng.',
             'user' => $user,
             'token' => $token,
         ]);
@@ -79,7 +79,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Đăng xuất thành công.',
+            'message' => 'ÄÄƒng xuáº¥t thÃ nh cÃ´ng.',
         ]);
     }
 
@@ -121,7 +121,7 @@ class AuthController extends Controller
 
         if ($status === Password::RESET_LINK_SENT) {
             return response()->json([
-                'message' => 'Đã gửi link đặt lại mật khẩu đến email của bạn.',
+                'message' => 'ÄÃ£ gá»­i link Ä‘áº·t láº¡i máº­t kháº©u Ä‘áº¿n email cá»§a báº¡n.',
             ]);
         }
 
@@ -152,7 +152,7 @@ class AuthController extends Controller
 
         if ($status === Password::PASSWORD_RESET) {
             return response()->json([
-                'message' => 'Đặt lại mật khẩu thành công.',
+                'message' => 'Äáº·t láº¡i máº­t kháº©u thÃ nh cÃ´ng.',
             ]);
         }
 
@@ -176,7 +176,7 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Cập nhật mật khẩu thành công.',
+            'message' => 'Cáº­p nháº­t máº­t kháº©u thÃ nh cÃ´ng.',
         ]);
     }
 
@@ -187,14 +187,14 @@ class AuthController extends Controller
     {
         if ($request->user()->hasVerifiedEmail()) {
             return response()->json([
-                'message' => 'Email đã được xác thực.',
+                'message' => 'Email Ä‘Ã£ Ä‘Æ°á»£c xÃ¡c thá»±c.',
             ]);
         }
 
         $request->user()->sendEmailVerificationNotification();
 
         return response()->json([
-            'message' => 'Đã gửi email xác thực.',
+            'message' => 'ÄÃ£ gá»­i email xÃ¡c thá»±c.',
         ]);
     }
 }

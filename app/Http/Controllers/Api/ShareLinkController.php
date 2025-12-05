@@ -32,14 +32,14 @@ class ShareLinkController extends Controller
             $item = Photo::where('id', $id)->where('user_id', $userId)->first();
             if (!$item) {
                 return response()->json([
-                    'message' => 'Ảnh không tồn tại hoặc không thuộc quyền sở hữu của bạn.',
+                    'message' => 'áº¢nh khÃ´ng tá»“n táº¡i hoáº·c khÃ´ng thuá»™c quyá»n sá»Ÿ há»¯u cá»§a báº¡n.',
                 ], 404);
             }
         } else {
             $item = Album::where('id', $id)->where('user_id', $userId)->first();
             if (!$item) {
                 return response()->json([
-                    'message' => 'Album không tồn tại hoặc không thuộc quyền sở hữu của bạn.',
+                    'message' => 'Album khÃ´ng tá»“n táº¡i hoáº·c khÃ´ng thuá»™c quyá»n sá»Ÿ há»¯u cá»§a báº¡n.',
                 ], 404);
             }
         }
@@ -85,14 +85,14 @@ class ShareLinkController extends Controller
 
         if (!$shareLink) {
             return response()->json([
-                'message' => 'Link chia sẻ không tồn tại.',
+                'message' => 'Link chia sáº» khÃ´ng tá»“n táº¡i.',
             ], 404);
         }
 
         // Check if link has expired
         if ($shareLink->expires_at && $shareLink->expires_at < now()) {
             return response()->json([
-                'message' => 'Link chia sẻ đã hết hạn.',
+                'message' => 'Link chia sáº» Ä‘Ã£ háº¿t háº¡n.',
                 'expired' => true,
             ], 410);
         }
@@ -101,7 +101,7 @@ class ShareLinkController extends Controller
             $photo = Photo::find($shareLink->photo_id);
             if (!$photo) {
                 return response()->json([
-                    'message' => 'Ảnh không còn tồn tại.',
+                    'message' => 'áº¢nh khÃ´ng cÃ²n tá»“n táº¡i.',
                 ], 404);
             }
             
@@ -116,7 +116,7 @@ class ShareLinkController extends Controller
             
             if (!$album) {
                 return response()->json([
-                    'message' => 'Album không còn tồn tại.',
+                    'message' => 'Album khÃ´ng cÃ²n tá»“n táº¡i.',
                 ], 404);
             }
 
@@ -152,7 +152,7 @@ class ShareLinkController extends Controller
         }
 
         return response()->json([
-            'message' => 'Link chia sẻ không hợp lệ.',
+            'message' => 'Link chia sáº» khÃ´ng há»£p lá»‡.',
         ], 404);
     }
 
@@ -165,20 +165,20 @@ class ShareLinkController extends Controller
 
         if (!$shareLink) {
             return response()->json([
-                'message' => 'Link chia sẻ không tồn tại.',
+                'message' => 'Link chia sáº» khÃ´ng tá»“n táº¡i.',
             ], 404);
         }
 
         // Check if link has expired
         if ($shareLink->expires_at && $shareLink->expires_at < now()) {
             return response()->json([
-                'message' => 'Link chia sẻ đã hết hạn.',
+                'message' => 'Link chia sáº» Ä‘Ã£ háº¿t háº¡n.',
             ], 410);
         }
 
         if (!$shareLink->album_id) {
             return response()->json([
-                'message' => 'Không tìm thấy album.',
+                'message' => 'KhÃ´ng tÃ¬m tháº¥y album.',
             ], 404);
         }
 
@@ -186,7 +186,7 @@ class ShareLinkController extends Controller
 
         if (!$album || $album->photos->isEmpty()) {
             return response()->json([
-                'message' => 'Album không có ảnh.',
+                'message' => 'Album khÃ´ng cÃ³ áº£nh.',
             ], 404);
         }
 
@@ -201,7 +201,7 @@ class ShareLinkController extends Controller
         $zip = new \ZipArchive();
         if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
             return response()->json([
-                'message' => 'Không thể tạo file ZIP.',
+                'message' => 'KhÃ´ng thá»ƒ táº¡o file ZIP.',
             ], 500);
         }
 
@@ -225,14 +225,14 @@ class ShareLinkController extends Controller
     {
         if ($shareLink->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Không có quyền xóa link này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n xÃ³a link nÃ y.',
             ], 403);
         }
 
         $shareLink->delete();
 
         return response()->json([
-            'message' => 'Đã xóa link chia sẻ.',
+            'message' => 'ÄÃ£ xÃ³a link chia sáº».',
         ]);
     }
 

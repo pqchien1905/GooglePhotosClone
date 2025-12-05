@@ -90,14 +90,14 @@ class ShareController extends Controller
     {
         if ($share->receiver_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Không có quyền thao tác này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n thao tÃ¡c nÃ y.',
             ], 403);
         }
 
         $share->update(['is_read' => true]);
 
         return response()->json([
-            'message' => 'Đã đánh dấu đã đọc.',
+            'message' => 'ÄÃ£ Ä‘Ã¡nh dáº¥u Ä‘Ã£ Ä‘á»c.',
         ]);
     }
 }

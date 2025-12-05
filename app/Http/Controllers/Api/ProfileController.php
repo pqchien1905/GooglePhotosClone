@@ -51,7 +51,7 @@ class ProfileController extends Controller
         $user->save();
 
         return response()->json([
-            'message' => 'Cập nhật thông tin thành công.',
+            'message' => 'Cáº­p nháº­t thÃ´ng tin thÃ nh cÃ´ng.',
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -90,7 +90,7 @@ class ProfileController extends Controller
         $user->save();
 
         return response()->json([
-            'message' => 'Cập nhật ảnh đại diện thành công.',
+            'message' => 'Cáº­p nháº­t áº£nh Ä‘áº¡i diá»‡n thÃ nh cÃ´ng.',
             'avatar_path' => $path,
         ]);
     }
@@ -113,7 +113,7 @@ class ProfileController extends Controller
         $user->delete();
 
         return response()->json([
-            'message' => 'Tài khoản đã được xóa.',
+            'message' => 'TÃ i khoáº£n Ä‘Ã£ Ä‘Æ°á»£c xÃ³a.',
         ]);
     }
 

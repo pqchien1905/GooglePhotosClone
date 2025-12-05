@@ -52,14 +52,14 @@ class NotificationController extends Controller
     {
         if ($notification->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Không có quyền thao tác này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n thao tÃ¡c nÃ y.',
             ], 403);
         }
 
         $notification->markAsRead();
 
         return response()->json([
-            'message' => 'Đã đánh dấu đã đọc.',
+            'message' => 'ÄÃ£ Ä‘Ã¡nh dáº¥u Ä‘Ã£ Ä‘á»c.',
         ]);
     }
 
@@ -73,7 +73,7 @@ class NotificationController extends Controller
             ->update(['is_read' => true]);
 
         return response()->json([
-            'message' => 'Đã đánh dấu tất cả là đã đọc.',
+            'message' => 'ÄÃ£ Ä‘Ã¡nh dáº¥u táº¥t cáº£ lÃ  Ä‘Ã£ Ä‘á»c.',
         ]);
     }
 
@@ -84,14 +84,14 @@ class NotificationController extends Controller
     {
         if ($notification->user_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Không có quyền xóa thông báo này.',
+                'message' => 'KhÃ´ng cÃ³ quyá»n xÃ³a thÃ´ng bÃ¡o nÃ y.',
             ], 403);
         }
 
         $notification->delete();
 
         return response()->json([
-            'message' => 'Đã xóa thông báo.',
+            'message' => 'ÄÃ£ xÃ³a thÃ´ng bÃ¡o.',
         ]);
     }
 }
