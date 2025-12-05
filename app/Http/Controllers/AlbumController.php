@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Album;
 use App\Models\Photo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class AlbumController extends Controller
@@ -156,7 +157,7 @@ class AlbumController extends Controller
                     new \App\Mail\ShareAlbumsMail($user, $albumData, $message)
                 );
             } catch (\Exception $e) {
-                \Log::error('Failed to send share email to ' . $email . ': ' . $e->getMessage());
+                Log::error('Failed to send share email to ' . $email . ': ' . $e->getMessage());
                 // Continue sending to other emails even if one fails
             }
         }

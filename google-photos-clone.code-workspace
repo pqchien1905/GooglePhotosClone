@@ -1,0 +1,15 @@
+﻿{
+    "folders": [
+        {
+            "path": ".",
+            "name": "Backend (Laravel)"
+        },
+        {
+            "path": "D:\\gpc-frontend",
+            "name": "Frontend (Next.js)"
+        }
+    ],
+    "settings": {
+        "typescript.tsdk": "gpc-frontend/node_modules/typescript/lib"
+    }
+}
