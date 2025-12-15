@@ -69,8 +69,12 @@ class ShareLinkController extends Controller
             ]);
         }
 
+        // Build frontend share URL
+        $frontendUrl = config('app.frontend_url') ?? url('http://localhost:3000');
+        $shareUrl = rtrim($frontendUrl, '/') . '/share/' . $shareLink->token;
+
         return response()->json([
-            'url' => route('share.show', $shareLink->token),
+            'url' => $shareUrl,
             'token' => $shareLink->token,
             'expires_at' => $shareLink->expires_at,
         ]);
@@ -137,6 +141,7 @@ class ShareLinkController extends Controller
                         'captured_at' => $photo->captured_at?->toISOString(),
                         'size' => $photo->size,
                         'mime' => $photo->mime,
+                        'duration' => $photo->duration,
                         'location_text' => $photo->location_text,
                         'location_name' => $photo->location_name,
                         'exif' => $photo->exif,

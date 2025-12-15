@@ -34,7 +34,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'message' => 'ÄÄƒng kÃ½ thÃ nh cÃ´ng.',
+            'message' => 'Registration successful',
             'user' => $user,
             'token' => $token,
         ], 201);
@@ -52,7 +52,7 @@ class AuthController extends Controller
 
         if (!Auth::attempt($request->only('email', 'password'))) {
             throw ValidationException::withMessages([
-                'email' => ['Email hoáº·c máº­t kháº©u khÃ´ng Ä‘Ãºng.'],
+                'email' => ['Invalid email or password'],
             ]);
         }
 
@@ -65,7 +65,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'message' => 'ÄÄƒng nháº­p thÃ nh cÃ´ng.',
+            'message' => 'Login successful',
             'user' => $user,
             'token' => $token,
         ]);
@@ -79,7 +79,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'ÄÄƒng xuáº¥t thÃ nh cÃ´ng.',
+            'message' => 'Logout successful',
         ]);
     }
 

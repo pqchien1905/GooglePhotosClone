@@ -128,7 +128,7 @@ class PhotoController extends Controller
             $perPage = min((int) $request->get('per_page', 50), 100);
             
             return $builder
-                ->select(['id', 'path', 'thumb_path', 'created_at', 'captured_at', 'size', 'mime', 'is_favorite', 'location_text', 'location_name', 'exif'])
+                ->select(['id', 'path', 'thumb_path', 'created_at', 'captured_at', 'size', 'mime', 'is_favorite', 'location_text', 'location_name', 'exif', 'duration'])
                 ->paginate($perPage)
                 ->appends($request->only(['q', 'type', 'from', 'to', 'sort', 'size', 'format', 'per_page']));
         });
@@ -267,7 +267,7 @@ class PhotoController extends Controller
         $photos = Photo::onlyTrashed()
             ->where('user_id', $request->user()->id)
             ->orderBy('deleted_at', 'desc')
-            ->select(['id', 'path', 'thumb_path', 'deleted_at', 'mime'])
+            ->select(['id', 'path', 'thumb_path', 'deleted_at', 'mime', 'duration'])
             ->get();
 
         return response()->json([
@@ -591,6 +591,44 @@ class PhotoController extends Controller
             'sent' => $sent,
             'failed' => $failed,
         ]);
+    }
+
+    /**
+     * Download a photo or video file.
+     */
+    public function download(Request $request, Photo $photo)
+    {
+        $this->authorize('view', $photo);
+
+        if (!Storage::disk('public')->exists($photo->path)) {
+            return response()->json([
+                'message' => 'File không tồn tại.',
+            ], 404);
+        }
+
+        $originalFilename = $photo->original_filename ?? basename($photo->path);
+
+        return Storage::disk('public')->download($photo->path, $originalFilename);
+    }
+
+    /**
+     * Regenerate thumbnail for a photo/video.
+     */
+    public function regenerateThumbnail(Request $request, Photo $photo): JsonResponse
+    {
+        $this->authorize('view', $photo);
+
+        try {
+            GenerateThumbnail::dispatch($photo);
+            return response()->json([
+                'message' => 'Đã bắt đầu tạo lại thumbnail. Vui lòng đợi vài giây.',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to dispatch GenerateThumbnail job: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Không thể tạo lại thumbnail.',
+            ], 500);
+        }
     }
 }
 

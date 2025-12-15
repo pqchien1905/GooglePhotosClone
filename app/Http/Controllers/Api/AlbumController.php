@@ -20,7 +20,7 @@ class AlbumController extends Controller
         $perPage = min((int) $request->get('per_page', 30), 100);
         
         $albums = Album::with(['coverPhoto' => function ($query) {
-            $query->select(['id', 'path', 'thumb_path', 'mime']);
+            $query->select(['id', 'path', 'thumb_path', 'mime', 'duration']);
         }])
             ->where('user_id', $request->user()->id)
             ->withCount('photos')
@@ -297,6 +297,168 @@ class AlbumController extends Controller
             'message' => "ÄÃ£ gá»­i email chia sáº» Ä‘áº¿n {$sent} Ä‘á»‹a chá»‰ email.",
             'sent' => $sent,
             'failed' => $failed,
+        ]);
+    }
+
+    /**
+     * Set cover photo for an album.
+     */
+    public function setCover(Request $request, Album $album): JsonResponse
+    {
+        if ($album->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Không có quyền chỉnh sửa album này.',
+            ], 403);
+        }
+
+        $data = $request->validate([
+            'photo_id' => 'required|integer|exists:photos,id',
+        ]);
+
+        $photo = Photo::findOrFail($data['photo_id']);
+
+        // Check if photo belongs to user
+        if ($photo->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Ảnh không thuộc quyền sở hữu của bạn.',
+            ], 403);
+        }
+
+        // Check if photo is in the album
+        if (!$album->photos()->where('photos.id', $photo->id)->exists()) {
+            return response()->json([
+                'message' => 'Ảnh không có trong album này.',
+            ], 422);
+        }
+
+        $album->cover_photo_id = $photo->id;
+        $album->save();
+
+        $album->load('coverPhoto');
+        $album->loadCount('photos');
+
+        return response()->json([
+            'message' => 'Đã đặt ảnh bìa cho album.',
+            'data' => $album,
+        ]);
+    }
+
+    /**
+     * Create albums automatically based on metadata.
+     * Groups photos by date (captured_at) or location (location_text).
+     */
+    public function createAutoAlbums(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'type' => 'required|string|in:date,location',
+            'min_photos' => 'nullable|integer|min:1|max:100',
+        ]);
+
+        $userId = $request->user()->id;
+        $type = $data['type'];
+        $minPhotos = $data['min_photos'] ?? 1; // Minimum photos per album (changed from 3 to 1)
+        $createdCount = 0;
+        $updatedCount = 0;
+
+        // Get all user's photos that are not in any album (or all photos for auto-album creation)
+        $photosQuery = Photo::where('user_id', $userId)
+            ->whereNull('deleted_at');
+
+        if ($type === 'date') {
+            // Group by captured_at date (or created_at if captured_at is null)
+            $photos = $photosQuery
+                ->orderByRaw('COALESCE(captured_at, created_at)')
+                ->get();
+
+            // Group photos by date
+            $groups = $photos->groupBy(function ($photo) {
+                $date = $photo->captured_at ?? $photo->created_at;
+                return $date ? $date->format('Y-m-d') : 'unknown';
+            })->filter(function ($group, $dateKey) use ($minPhotos) {
+                return $dateKey !== 'unknown' && $group->count() >= $minPhotos;
+            });
+
+            foreach ($groups as $dateKey => $groupPhotos) {
+                $date = \Carbon\Carbon::parse($dateKey);
+                $albumName = $date->format('d/m/Y');
+
+                // Check if album already exists
+                $existingAlbum = Album::where('user_id', $userId)
+                    ->where('name', $albumName)
+                    ->first();
+
+                if ($existingAlbum) {
+                    // Add photos to existing album if not already in it
+                    $newPhotoIds = $groupPhotos->pluck('id')->diff($existingAlbum->photos()->pluck('photos.id'));
+                    if ($newPhotoIds->isNotEmpty()) {
+                        $existingAlbum->photos()->attach($newPhotoIds);
+                        if (!$existingAlbum->cover_photo_id) {
+                            $existingAlbum->cover_photo_id = $groupPhotos->first()->id;
+                            $existingAlbum->save();
+                        }
+                        $updatedCount++;
+                    }
+                } else {
+                    // Create new album
+                    $album = Album::create([
+                        'user_id' => $userId,
+                        'name' => $albumName,
+                        'cover_photo_id' => $groupPhotos->first()->id,
+                    ]);
+                    $album->photos()->attach($groupPhotos->pluck('id'));
+                    $createdCount++;
+                }
+            }
+        } elseif ($type === 'location') {
+            // Group by location_text (or 'Chưa được gắn tag' for null location)
+            $photos = $photosQuery
+                ->orderBy('location_text')
+                ->get();
+
+            // Group photos by location
+            $groups = $photos->groupBy(function ($photo) {
+                return $photo->location_text ?? 'Chưa được gắn tag';
+            })->filter(function ($group) use ($minPhotos) {
+                return $group->count() >= $minPhotos;
+            });
+
+            foreach ($groups as $locationText => $groupPhotos) {
+                $albumName = $locationText === 'Chưa được gắn tag' ? $locationText : '📍 ' . $locationText;
+
+                // Check if album already exists
+                $existingAlbum = Album::where('user_id', $userId)
+                    ->where('name', $albumName)
+                    ->first();
+
+                if ($existingAlbum) {
+                    // Add photos to existing album if not already in it
+                    $newPhotoIds = $groupPhotos->pluck('id')->diff($existingAlbum->photos()->pluck('photos.id'));
+                    if ($newPhotoIds->isNotEmpty()) {
+                        $existingAlbum->photos()->attach($newPhotoIds);
+                        if (!$existingAlbum->cover_photo_id) {
+                            $existingAlbum->cover_photo_id = $groupPhotos->first()->id;
+                            $existingAlbum->save();
+                        }
+                        $updatedCount++;
+                    }
+                } else {
+                    // Create new album
+                    $album = Album::create([
+                        'user_id' => $userId,
+                        'name' => $albumName,
+                        'cover_photo_id' => $groupPhotos->first()->id,
+                    ]);
+                    $album->photos()->attach($groupPhotos->pluck('id'));
+                    $createdCount++;
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => "Đã tạo {$createdCount} album mới và cập nhật {$updatedCount} album.",
+            'created' => $createdCount,
+            'updated' => $updatedCount,
+            'type' => $type,
         ]);
     }
 }

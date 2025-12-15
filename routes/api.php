@@ -32,7 +32,7 @@ Route::prefix('auth')->group(function () {
 });
 
 // Public share links (view shared content)
-Route::get('/share/{token}', [ShareLinkController::class, 'show']);
+Route::get('/share/{token}', [ShareLinkController::class, 'show'])->name('share.show');
 Route::get('/share/{token}/download', [ShareLinkController::class, 'downloadAlbum']);
 
 // ==========================================================================
@@ -68,6 +68,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/favorites', [PhotoController::class, 'favorites']);
         Route::get('/trash', [PhotoController::class, 'trash']);
         Route::get('/{photo}', [PhotoController::class, 'show']);
+        Route::get('/{photo}/download', [PhotoController::class, 'download']);
+        Route::post('/{photo}/regenerate-thumbnail', [PhotoController::class, 'regenerateThumbnail']);
         Route::delete('/{photo}', [PhotoController::class, 'destroy']);
         Route::post('/{id}/restore', [PhotoController::class, 'restore']);
         Route::delete('/{id}/force', [PhotoController::class, 'forceDestroy']);
@@ -80,6 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // --------------------------------------------------------------------
     Route::prefix('videos')->group(function () {
         Route::get('/', [PhotoController::class, 'videos']);
+        Route::get('/{photo}', [PhotoController::class, 'show']);
+        Route::delete('/{photo}', [PhotoController::class, 'destroy']);
+        Route::post('/{id}/favorite', [PhotoController::class, 'toggleFavorite']);
         Route::post('/share-email', [PhotoController::class, 'shareVideosEmail']);
     });
 
@@ -90,8 +95,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [AlbumController::class, 'index']);
         Route::get('/list', [AlbumController::class, 'list']);
         Route::post('/', [AlbumController::class, 'store']);
+        Route::post('/auto-create', [AlbumController::class, 'createAutoAlbums']);
         Route::get('/{album}', [AlbumController::class, 'show']);
         Route::patch('/{album}', [AlbumController::class, 'update']);
+        Route::put('/{album}/cover', [AlbumController::class, 'setCover']);
         Route::delete('/{album}', [AlbumController::class, 'destroy']);
         Route::post('/{album}/photos', [AlbumController::class, 'addPhotos']);
         Route::delete('/{album}/photos/{photo}', [AlbumController::class, 'removePhoto']);
@@ -116,8 +123,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Shares
     // --------------------------------------------------------------------
     Route::prefix('shares')->group(function () {
+        Route::post('/', [ShareController::class, 'store']);
         Route::get('/received', [ShareController::class, 'received']);
         Route::get('/sent', [ShareController::class, 'sent']);
+        Route::get('/{share}', [ShareController::class, 'show']);
         Route::post('/{share}/read', [ShareController::class, 'markAsRead']);
     });
 
@@ -136,8 +145,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
-        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
-        Route::delete('/{notification}', [NotificationController::class, 'destroy']);
+        Route::delete('/{id}', [NotificationController::class, 'destroy']);
     });
 });

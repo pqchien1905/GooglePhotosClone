@@ -27,12 +27,19 @@ class Photo extends Model
         'visibility',
         'sha256',
         'is_favorite',
+        'duration',
     ];
 
     protected $casts = [
         'exif' => 'array',
         'captured_at' => 'datetime',
         'size' => 'integer',
+        'duration' => 'integer',
+    ];
+
+    protected $appends = [
+        'original_filename',
+        'mime_type',
     ];
 
     public function user(): BelongsTo
@@ -46,4 +53,21 @@ class Photo extends Model
             ->withPivot('position')
             ->withTimestamps();
     }
+
+    /**
+     * Get the original filename from the path.
+     */
+    public function getOriginalFilenameAttribute(): string
+    {
+        return basename($this->path ?? '');
+    }
+
+    /**
+     * Alias for mime field (backward compatibility).
+     */
+    public function getMimeTypeAttribute(): ?string
+    {
+        return $this->mime;
+    }
 }
+

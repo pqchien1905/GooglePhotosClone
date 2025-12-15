@@ -24,9 +24,15 @@ return [
         'http://localhost:3000',
         'http://localhost:3001',
         'http://127.0.0.1:3000',
+        // LAN access for local devices
+        'http://192.168.1.11:3000',
+        'http://192.168.1.8:3000',
     ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        // Allow other LAN hosts on port 3000
+        '#^http://192\.168\.[0-9]{1,3}\.[0-9]{1,3}:3000$#',
+    ],
 
     'allowed_headers' => ['*'],
 
@@ -34,6 +40,7 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
+    // Set to false for token-based auth (no cookies)
+    'supports_credentials' => false,
 
 ];

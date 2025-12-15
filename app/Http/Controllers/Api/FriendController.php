@@ -7,6 +7,8 @@ use App\Models\Friend;
 use App\Models\Notification;
 use App\Models\Share;
 use App\Models\User;
+use App\Notifications\FriendRequestReceived;
+use App\Notifications\FriendRequestAccepted;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -25,17 +27,22 @@ class FriendController extends Controller
                   ->orWhere('addressee_id', $user->id);
             })
             ->where('status', 'accepted')
+            ->where(function ($q) use ($user) {
+                // Exclude friends blocked by current user
+                $q->whereNull('blocked_by_user_id')
+                  ->orWhere('blocked_by_user_id', '!=', $user->id);
+            })
             ->orderBy('updated_at', 'desc')
             ->get()
             ->map(function ($f) use ($user) {
                 $other = $f->requester_id === $user->id ? $f->addressee : $f->requester;
                 return [
                     'id' => $f->id,
-                    'friend' => [
+                    'user' => [
                         'id' => $other->id,
                         'name' => $other->name,
                         'email' => $other->email,
-                        'avatar_path' => $other->avatar_path,
+                        'avatar' => $other->avatar_path,
                     ],
                     'created_at' => $f->created_at,
                     'updated_at' => $f->updated_at,
@@ -50,11 +57,11 @@ class FriendController extends Controller
             ->map(function ($f) {
                 return [
                     'id' => $f->id,
-                    'from' => [
+                    'user' => [
                         'id' => $f->requester->id,
                         'name' => $f->requester->name,
                         'email' => $f->requester->email,
-                        'avatar_path' => $f->requester->avatar_path,
+                        'avatar' => $f->requester->avatar_path,
                     ],
                     'created_at' => $f->created_at,
                 ];
@@ -68,11 +75,11 @@ class FriendController extends Controller
             ->map(function ($f) {
                 return [
                     'id' => $f->id,
-                    'to' => [
+                    'friend' => [
                         'id' => $f->addressee->id,
                         'name' => $f->addressee->name,
                         'email' => $f->addressee->email,
-                        'avatar_path' => $f->addressee->avatar_path,
+                        'avatar' => $f->addressee->avatar_path,
                     ],
                     'created_at' => $f->created_at,
                 ];
@@ -83,7 +90,7 @@ class FriendController extends Controller
                 $q->where('requester_id', $user->id)
                   ->orWhere('addressee_id', $user->id);
             })
-            ->where('status', 'blocked')
+            ->where('blocked_by_user_id', $user->id)
             ->orderBy('updated_at', 'desc')
             ->get()
             ->map(function ($f) use ($user) {
@@ -120,6 +127,11 @@ class FriendController extends Controller
                   ->orWhere('addressee_id', $user->id);
             })
             ->where('status', 'accepted')
+            ->where(function ($q) use ($user) {
+                // Exclude friends blocked by current user
+                $q->whereNull('blocked_by_user_id')
+                  ->orWhere('blocked_by_user_id', '!=', $user->id);
+            })
             ->orderBy('updated_at', 'desc')
             ->get();
 
@@ -129,7 +141,7 @@ class FriendController extends Controller
                 'id' => $other->id,
                 'name' => $other->name,
                 'email' => $other->email,
-                'avatar_path' => $other->avatar_path,
+                'avatar' => $other->avatar_path,
             ];
         })->values()->unique('id')->values();
 
@@ -152,13 +164,13 @@ class FriendController extends Controller
 
         if (!$target) {
             return response()->json([
-                'message' => 'KhÃ´ng tÃ¬m tháº¥y ngÆ°á»i dÃ¹ng vá»›i email nÃ y.',
+                'message' => 'Không tìm thấy người dùng với email này.',
             ], 404);
         }
         
         if ($target->id === $user->id) {
             return response()->json([
-                'message' => 'Báº¡n khÃ´ng thá»ƒ káº¿t báº¡n vá»›i chÃ­nh mÃ¬nh.',
+                'message' => 'Bạn không thể kết bạn với chính mình.',
             ], 422);
         }
 
@@ -170,11 +182,11 @@ class FriendController extends Controller
         if ($existing) {
             if ($existing->status === 'blocked') {
                 return response()->json([
-                    'message' => 'KhÃ´ng thá»ƒ káº¿t báº¡n vá»›i ngÆ°á»i dÃ¹ng nÃ y.',
+                    'message' => 'Không thể kết bạn với người dùng này.',
                 ], 403);
             }
             return response()->json([
-                'message' => 'ÄÃ£ tá»“n táº¡i má»‘i quan há»‡ vá»›i ngÆ°á»i dÃ¹ng nÃ y.',
+                'message' => 'Đã tồn tại mối quan hệ với người dùng này.',
             ], 422);
         }
 
@@ -184,19 +196,11 @@ class FriendController extends Controller
             'status' => 'pending',
         ]);
 
-        // Create notification for target user
-        Notification::create([
-            'user_id' => $target->id,
-            'type' => 'friend_request',
-            'data' => [
-                'from_user_id' => $user->id,
-                'from_user_name' => $user->name,
-                'friend_id' => $friend->id,
-            ],
-        ]);
+        // Send notification to the target user
+        $target->notify(new FriendRequestReceived($user->name, $user->email, $friend->id));
 
         return response()->json([
-            'message' => 'ÄÃ£ gá»­i lá»i má»i káº¿t báº¡n.',
+            'message' => 'Đã gửi lời mời kết bạn.',
             'data' => $friend,
         ], 201);
     }
@@ -210,31 +214,24 @@ class FriendController extends Controller
         
         if ($friend->addressee_id !== $user->id) {
             return response()->json([
-                'message' => 'KhÃ´ng cÃ³ quyá»n cháº¥p nháº­n lá»i má»i nÃ y.',
+                'message' => 'Không có quyền chấp nhận lời mời này.',
             ], 403);
         }
         
         if ($friend->status !== 'pending') {
             return response()->json([
-                'message' => 'Lá»i má»i nÃ y khÃ´ng cÃ²n á»Ÿ tráº¡ng thÃ¡i chá».',
+                'message' => 'Lời mời này không còn ở trạng thái chờ.',
             ], 422);
         }
         
         $friend->status = 'accepted';
         $friend->save();
 
-        // Create notification for requester
-        Notification::create([
-            'user_id' => $friend->requester_id,
-            'type' => 'friend_accepted',
-            'data' => [
-                'from_user_id' => $user->id,
-                'from_user_name' => $user->name,
-            ],
-        ]);
+        // Send notification to the requester that their request was accepted
+        $friend->requester->notify(new FriendRequestAccepted($user->name, $user->email));
 
         return response()->json([
-            'message' => 'ÄÃ£ cháº¥p nháº­n lá»i má»i.',
+            'message' => 'Đã chấp nhận lời mời.',
             'data' => $friend,
         ]);
     }
@@ -248,14 +245,14 @@ class FriendController extends Controller
         
         if ($friend->requester_id !== $user->id && $friend->addressee_id !== $user->id) {
             return response()->json([
-                'message' => 'KhÃ´ng cÃ³ quyá»n xÃ³a má»‘i quan há»‡ nÃ y.',
+                'message' => 'Không có quyền xóa mối quan hệ này.',
             ], 403);
         }
         
         $friend->delete();
         
         return response()->json([
-            'message' => 'ÄÃ£ xÃ³a má»‘i quan há»‡ báº¡n bÃ¨ / há»§y lá»i má»i.',
+            'message' => 'Đã xóa mối quan hệ bạn bè / hủy lời mời.',
         ]);
     }
 
@@ -268,15 +265,18 @@ class FriendController extends Controller
         
         if ($friend->requester_id !== $user->id && $friend->addressee_id !== $user->id) {
             return response()->json([
-                'message' => 'KhÃ´ng cÃ³ quyá»n cháº·n ngÆ°á»i dÃ¹ng nÃ y.',
+                'message' => 'Không có quyền chặn người dùng này.',
             ], 403);
         }
         
-        $friend->status = 'blocked';
-        $friend->save();
+        // Only update if not already blocked by this user
+        if ($friend->blocked_by_user_id !== $user->id) {
+            $friend->blocked_by_user_id = $user->id;
+            $friend->save();
+        }
         
         return response()->json([
-            'message' => 'ÄÃ£ cháº·n ngÆ°á»i dÃ¹ng.',
+            'message' => 'Đã chặn người dùng.',
         ]);
     }
 
@@ -289,14 +289,18 @@ class FriendController extends Controller
         
         if ($friend->requester_id !== $user->id && $friend->addressee_id !== $user->id) {
             return response()->json([
-                'message' => 'KhÃ´ng cÃ³ quyá»n bá» cháº·n ngÆ°á»i dÃ¹ng nÃ y.',
+                'message' => 'Không có quyền bỏ chặn người dùng này.',
             ], 403);
         }
         
-        $friend->delete();
+        // Only unblock if this user blocked them
+        if ($friend->blocked_by_user_id === $user->id) {
+            $friend->blocked_by_user_id = null;
+            $friend->save();
+        }
         
         return response()->json([
-            'message' => 'ÄÃ£ bá» cháº·n ngÆ°á»i dÃ¹ng.',
+            'message' => 'Đã bỏ chặn người dùng.',
         ]);
     }
 
@@ -330,7 +334,7 @@ class FriendController extends Controller
         foreach ($data['friend_ids'] as $friendId) {
             if (!$friendUserIds->contains($friendId)) {
                 return response()->json([
-                    'message' => 'Má»™t hoáº·c nhiá»u ngÆ°á»i nháº­n khÃ´ng pháº£i lÃ  báº¡n bÃ¨ cá»§a báº¡n.',
+                    'message' => 'Một hoặc nhiều người nhận không phải là bạn bè của bạn.',
                 ], 422);
             }
         }
@@ -387,7 +391,7 @@ class FriendController extends Controller
         }
 
         return response()->json([
-            'message' => "ÄÃ£ chia sáº» thÃ nh cÃ´ng.",
+            'message' => 'Đã chia sẻ thành công.',
             'shares_count' => $sharesCount,
         ]);
     }

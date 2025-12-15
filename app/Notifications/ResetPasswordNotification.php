@@ -41,10 +41,9 @@ class ResetPasswordNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $resetUrl = url(route('password.reset', [
-            'token' => $this->token,
-            'email' => $notifiable->getEmailForPasswordReset(),
-        ], false));
+        // Build reset URL for Next.js frontend
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        $resetUrl = $frontendUrl . '/reset-password?token=' . urlencode($this->token) . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
 
         $expireMinutes = config('auth.passwords.'.config('auth.defaults.passwords').'.expire', 60);
 
